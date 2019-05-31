@@ -32,7 +32,7 @@ int main(int argc, char const *argv[])
     serv_addr.sin_port = htons(PORT);
     
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0)
+    if(inet_pton(AF_INET, "192.168.2.2", &serv_addr.sin_addr)<=0)
     {
         printf("\nInvalid address/ Address not supported \n");
         return -1;
@@ -47,8 +47,10 @@ int main(int argc, char const *argv[])
     
     // Read back whatever output comes the other way
     do {
-	    valread = read( sock , buffer, 1024);
-		if(valread) printf("%s",buffer );
+	    valread = read(sock ,buffer, 1023);
+        buffer[valread] = '\0';
+		if(valread) printf("%s", buffer);
+        //printf("read %d bytes from socket\n", valread);
 	} while(valread);
 
 	printf("\n");	
