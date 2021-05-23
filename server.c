@@ -6,77 +6,62 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#include <proto/dos.h>
+#define PORT 8021
 
-#define PORT 8080
 int main(int argc, char const *argv[])
 {
-    int server_fd, new_socket; long valread;
-    struct sockaddr_in address;
+    int sock, connect;
+    int reuse = 1;
+    long bytesread;
+
+    /* Server addess */
+    struct sockaddr_in address = (struct sockaddr_in){  
+        AF_INET,
+        htons(PORT),
+        (struct in_addr){INADDR_ANY}
+    };
     int addrlen = sizeof(address);
-    
-    char *hello = "Hello from server";
 
-   BPTR output = 0;
-          
     // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
-        perror("In socket");
+        perror("socket");
         exit(EXIT_FAILURE);
     }
-    
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( PORT );
-    
-    memset(address.sin_zero, '\0', sizeof address.sin_zero);
-    
-    
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0)
+    /* Address can be reused instantly after program exits */
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
+        
+    if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        perror("In bind");
+        perror("bind");
         exit(EXIT_FAILURE);
     }
-    if (listen(server_fd, 10) < 0)
+    if (listen(sock, 10) < 0)
     {
-        perror("In listen");
+        perror("listen");
         exit(EXIT_FAILURE);
     }
+
     while(1)
     {
         printf("\n+++++++ Waiting for new connection ++++++++\n\n");
-        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
+        if ((connect = accept(sock, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
         {
-            perror("In accept");
+            perror("accept");
             exit(EXIT_FAILURE);
         }
+        printf("CONNECT from 0x(%x) \n", address.sin_addr.s_addr);
         
-        char buffer[30000] = {0};
-        valread = read( new_socket , buffer, 30000);
-        printf("%s\n",buffer );
-        
-        //execv(buffer, 0);
-        
-        /* AmigaOS specific */
-        output = IDOS->Open("output.txt", MODE_NEWFILE);
-        IDOS->SystemTags(buffer, SYS_Output, output ? output : 0, TAG_DONE);
-        if (output) IDOS->Close(output);
-        /* -- */
-        
-		FILE *fh = fopen("output.txt", "r");
-		char string[4096];
-		int len = 4096; 
-        do {
-        	char *result = fgets(string, len, fh);
-            if(result) write(new_socket , string, strlen(string));
-            else break;
-        } while(1);
-        fclose(fh);
-            
-        printf("------------------Hello message sent-------------------\n");
-        close(new_socket);
+        char buffer[1024];
+        while (bytesread = read(connect, buffer, sizeof(buffer))) {
+            buffer[bytesread] = '\0';
+            printf("Command: %s\n",buffer);
+        }
+
+        printf("..<terminate connection>--\n");
+        close(connect);
     }
+    close(sock);
     return 0;
 }

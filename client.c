@@ -7,52 +7,54 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-#define PORT 8080
+#define PORT 8021
 
 int main(int argc, char const *argv[])
 {
-    int sock = 0; long valread;
-    struct sockaddr_in serv_addr;
-    char buffer[1024] = {0};
-    
-    if (argc < 2) {
-    	printf("USAGE: %s <command>\n", argv[0]);
+    int sock = 0;
+
+    if (argc < 3) {
+    	printf("USAGE: %s <ip> <port>\n", argv[0]);
     	return 0;
     }
-    
+
+    /* Server addess */
+    struct sockaddr_in address = (struct sockaddr_in){  
+        AF_INET,
+        htons(PORT),
+        0 //(struct in_addr){INADDR_ANY}
+    };
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        printf("\n Socket creation error \n");
+        perror("socket");
         return -1;
     }
-    
-    memset(&serv_addr, '0', sizeof(serv_addr));
-    
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    
+            
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "192.168.2.2", &serv_addr.sin_addr)<=0)
+    if(inet_pton(AF_INET, argv[1], &address.sin_addr) <= 0)
     {
-        printf("\nInvalid address/ Address not supported \n");
+        perror("address not supported");
         return -1;
     }
     
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    if (connect(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        printf("\nConnection Failed \n");
+        printf("connect");
         return -1;
     }
-    send(sock, argv[1], strlen(argv[1]) ,0);
-    
-    // Read back whatever output comes the other way
-    do {
-	    valread = read(sock ,buffer, 1023);
-        buffer[valread] = '\0';
-		if(valread) printf("%s", buffer);
-        //printf("read %d bytes from socket\n", valread);
-	} while(valread);
 
-	printf("\n");	
+    while(1) {
+        char command[1024];
+
+        printf("> ");
+        gets(command);
+
+        if(!strcmp(command, "QUIT"))
+            break;
+
+        send(sock, command, strlen(command) ,0);
+    }
+
     return 0;
 }
