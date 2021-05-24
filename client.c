@@ -7,8 +7,6 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-#define PORT 8021
-
 int term = 0;
 
 char *safe_recv(int socket) {
@@ -29,35 +27,34 @@ char *safe_recv(int socket) {
 int main(int argc, char const *argv[])
 {
     int sock = 0;
+    struct sockaddr_in address;
 
     if (argc < 3) {
     	printf("USAGE: %s <ip> <port>\n", argv[0]);
     	return 0;
     }
 
-    /* Server addess */
-    struct sockaddr_in address = (struct sockaddr_in){  
-        AF_INET,
-        htons(PORT),
-        0 //(struct in_addr){INADDR_ANY}
-    };
-
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        perror("socket");
-        return -1;
+	printf("\n Socket creation error \n");
+	return -1;
     }
-            
+
+    memset(&address, '0', sizeof(address));
+
+    address.sin_family = AF_INET;
+    address.sin_port = htons(atoi(argv[2]));
+
     // Convert IPv4 and IPv6 addresses from text to binary form
     if(inet_pton(AF_INET, argv[1], &address.sin_addr) <= 0)
     {
-        perror("address not supported");
-        return -1;
+	printf("\nInvalid address/ Address not supported \n");
+	return -1;
     }
-    
+
     if (connect(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
-        printf("connect");
+        perror("connect");
         return -1;
     }
 

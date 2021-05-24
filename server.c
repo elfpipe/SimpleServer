@@ -1,4 +1,4 @@
-// Server side C program to demonstrate Socket programming
+// Server side C program
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -31,8 +31,6 @@ char *safe_recv(int socket) {
 int main(int argc, char const *argv[])
 {
     int sock, connect;
-    int reuse = 1;
-    long bytesread;
 
     /* Server addess */
     struct sockaddr_in address = (struct sockaddr_in){  
@@ -48,9 +46,6 @@ int main(int argc, char const *argv[])
         perror("socket");
         exit(EXIT_FAILURE);
     }
-
-    /* Address can be reused instantly after program exits */
-//    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
         
     if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
