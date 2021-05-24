@@ -8,6 +8,26 @@
 
 #define PORT 8021
 
+int term = 0;
+
+char *safe_recv(int socket) {
+    static char buffer[4096];
+    int bytes, offset = 0;
+    do {
+	bytes = recv (socket, buffer + offset, sizeof(buffer) - 1 - offset, 0);
+	offset += bytes;
+    } while (bytes > 0
+	&& buffer[offset - 1] != '\3'
+	&& buffer[offset - 1] != '\4');
+
+    if (buffer[offset - 1] == '\4')
+        term = 1;
+    buffer[offset - 1] = '\0';
+//    if (bytes < 0)
+//	perror("recv");
+    return buffer;
+}
+
 int main(int argc, char const *argv[])
 {
     int sock, connect;
@@ -30,7 +50,7 @@ int main(int argc, char const *argv[])
     }
 
     /* Address can be reused instantly after program exits */
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
+//    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof reuse);
         
     if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
@@ -46,6 +66,7 @@ int main(int argc, char const *argv[])
     while(1)
     {
         printf("\n+++++++ Waiting for new connection ++++++++\n\n");
+	term = 0;
         if ((connect = accept(sock, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0)
         {
             perror("accept");
@@ -53,13 +74,17 @@ int main(int argc, char const *argv[])
         }
         printf("CONNECT from 0x(%x) \n", address.sin_addr.s_addr);
         
-        char buffer[1024];
-        while (bytesread = read(connect, buffer, sizeof(buffer))) {
-            buffer[bytesread] = '\0';
-            printf("Command: %s\n",buffer);
-        }
+	while(!term) {
+            char *message = safe_recv (connect);
+	    if(strlen(message)) {
+		printf("MESSAGE : %s\n", message);
 
+       	        send(connect, "<revc>", strlen("<recv>"), 0);
+	        send(connect, "\3", 1, 0);
+	    }
+	}
         printf("..<terminate connection>--\n");
+//	sleep(1);
         close(connect);
     }
     close(sock);
