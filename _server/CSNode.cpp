@@ -85,7 +85,7 @@ CSNode::CSConnection *CSNode::connectToPeer (char *address, int port) {
         success = false;
     }
 
-    if (connect (connection->connectionSocket, (struct sockaddr *)&address, sizeof(address)) < 0) {
+    if (connect (connection->connectionSocket, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
         perror("connect");
         success = false;
     }
@@ -106,9 +106,8 @@ void CSNode::closeConnection (CSNode::CSConnection *connection) {
     if (connection) {
         close (connection->connectionSocket);
 
-        for(vector<CSNode::CSConnection *>::iterator it = openConnections.begin();
-                it != openConnections.end(); it++) {
-            if((*it) == connection) openConnections.erase (it);
+        for(int i = 0; i < openConnections.size(); i++) {
+            if(openConnections.at(i) == connection) openConnections.erase (openConnections.begin() + i);
         }
         delete connection;
     }
