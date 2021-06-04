@@ -18,7 +18,7 @@ class CSNode {
 private:
     int bindSocket, port;
     bool hasBinding;
-    
+
     static const int Bufsize = 16;
     struct CSBuffer {
         char *buffer;
@@ -82,14 +82,14 @@ public:
     CSConnection *connectToPeer (char *address, int port);
     void closeConnection (CSConnection *connection);
 
-    string getSentence (CSConnection *connection, char stopCharacter = '\3') { //ETX
+    string readSentence (CSConnection *connection, char stopCharacter = '\3') { //ETX
         string result;
         char buffer[Bufsize];
         int bytes;
 
         while ((bytes = recv(connection->connectionSocket, buffer, Bufsize, 0)) > 0) {
             connection->readBuffer.fill(buffer, bytes);
-            int charAt = connection->readBuffer.find (charAt);
+            int charAt = connection->readBuffer.find (stopCharacter);
             if (charAt != -1) {
                 char resultBuffer[charAt - connection->readBuffer.offset];
                 memcpy (resultBuffer,

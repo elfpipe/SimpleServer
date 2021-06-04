@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <sys/file.h>
 
 #define PORT 8021
 
@@ -28,6 +29,95 @@ char *safe_recv(int socket) {
     return buffer;
 }
 
+int safe_send(int socket, char *message)
+{
+    int bytes = send (socket, message, strlen(message), 0);
+    send (socket, "\3", 1, 0);
+    return bytes;
+}
+
+int do_PUSH (int sock, char *filename) // PUSH from client
+{
+    //read size from connect
+    char *sizestr = safe_recv(sock);
+    int size = atoi(sizestr);
+
+    if (size == 0) {
+    	printf("<PUSH> : file size 0, abort\n");
+    	return -1;
+    }
+
+    printf("<read file> : %s , size %d\n", filename, size);
+
+    //read file to disk
+    int fd = open (filename, O_CREAT|O_WRONLY|O_TRUNC); //read, write and execute permission
+    if (fd < 0) {
+	    perror("open");
+	    return -1;
+    }
+    int rbytes = 0;
+    while (rbytes < size) {
+        char buffer[4096];
+	    int len = recv (sock, buffer, sizeof(buffer), 0);
+	    if (len < 0) return -1;
+	    write (fd, buffer, len);
+	    rbytes += len;
+    }
+
+    printf("<PUSH> : success\n");
+
+    close (fd);
+    if(rbytes != size)
+    	printf("Warning : PUSH returned file of Odd size\n");
+
+    return 0;
+}
+
+const char *commands[] = {
+    "PUSH",
+    "PULL",
+    "CLOSE"
+};
+
+enum command_no {
+    C_PUSH,
+    C_PULL,
+    C_CLOSE,
+    C_COMMANDS
+};
+
+int do_command (int sock, char *message)
+{
+    char command[1024], argument[1024];
+    sscanf (message, "%s %s", command, argument);
+
+    int c = -1;
+    for (int i = 0; i < C_COMMANDS; i++) {
+        if (!strcmp(command, commands[i])) {
+	    c = i;
+	    break;
+	}
+    }
+    switch(c) {
+	case C_PUSH:
+	    printf("<PUSH> : %s\n", argument);
+	    do_PUSH (sock, argument);
+	    break;
+	case C_PULL:
+	    printf("<PULL> : %s\n", argument);
+	    break;
+	case C_CLOSE:
+	    printf("<CLOSE>\n");
+	    break;
+	default:
+	    printf("<unknown command>\n");
+	    break;
+    }
+    send(sock, "<revc>", strlen("<recv>"), 0);
+    send(sock, "\3", 1, 0);
+    return 0;
+}
+
 int main(int argc, char const *argv[])
 {
     int sock, connect;
@@ -46,7 +136,7 @@ int main(int argc, char const *argv[])
         perror("socket");
         exit(EXIT_FAILURE);
     }
-        
+
     if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
         perror("bind");
@@ -68,18 +158,20 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
         printf("CONNECT from 0x(%x) \n", address.sin_addr.s_addr);
-        
+
+        //send welcome message
+
+        const char *welcome = "Hello and welcome\n We are pleased to \3 tell you, that you are connected.\n\n";
+        send (connect, welcome, strlen (welcome), 0);
+
+
 	while(!term) {
             char *message = safe_recv (connect);
-	    if(strlen(message)) {
-		printf("MESSAGE : %s\n", message);
+	    printf("<command> : %s \n", message);
 
-       	        send(connect, "<revc>", strlen("<recv>"), 0);
-	        send(connect, "\3", 1, 0);
-	    }
+	    do_command(connect, message);
 	}
         printf("..<terminate connection>--\n");
-//	sleep(1);
         close(connect);
     }
     close(sock);

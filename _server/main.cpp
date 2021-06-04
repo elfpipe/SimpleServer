@@ -1,4 +1,5 @@
 #include "CSNode.hpp"
+#include <iostream>
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -13,7 +14,10 @@ int main(int argc, char *argv[]) {
         printf("Successfully connected to %s\n", argv[1]);
     } else {
         printf("Failed to connect to %s\n", argv[1]);
+        return -1;
     }
+
+    std::cout << node.readSentence (connection);
 
     node.closeConnection(connection);
     printf("Connection closed\n");
