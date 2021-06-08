@@ -75,11 +75,13 @@ public:
 
     vector<CSConnection *> openConnections;    
 
-public:
+private:
     bool doBind (int port);
     void unBind ();
-    CSConnection *waitForIncomming();
-    CSConnection *connectToPeer (char *address, int port);
+
+public:
+    CSConnection *waitForIncomming(int port);
+    CSConnection *connectToPeer (const char *address, int port);
     void closeConnection (CSConnection *connection);
 
     string readSentence (CSConnection *connection, char stopCharacter = '\3') { //ETX

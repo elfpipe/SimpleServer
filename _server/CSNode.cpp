@@ -40,10 +40,9 @@ void CSNode::unBind () {
     hasBinding = false;
 }
 
-CSNode::CSConnection *CSNode::waitForIncomming() {
+CSNode::CSConnection *CSNode::waitForIncomming(int port) {
     if(!hasBinding) {
-        printf("No binding present on node\n");
-        return 0;
+        doBind(port);
     }
     CSConnection *connection = new CSConnection;
 
@@ -69,7 +68,7 @@ CSNode::CSConnection *CSNode::waitForIncomming() {
     return connection;
 }
 
-CSNode::CSConnection *CSNode::connectToPeer (char *address, int port) {
+CSNode::CSConnection *CSNode::connectToPeer (const char *address, int port) {
     CSConnection *connection = new CSConnection;
     if ((connection->connectionSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket");
@@ -115,4 +114,5 @@ void CSNode::closeConnection (CSNode::CSConnection *connection) {
         }
         delete connection;
     }
+    unBind();
 }
