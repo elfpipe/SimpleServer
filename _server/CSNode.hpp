@@ -100,5 +100,13 @@ public:
         }
         connection->readBuffer.flush(); //clean up buffer heads
         return result;
-    }        
+    }
+
+    bool writeSentence (CSConnection *connection, string sentence) {
+        int bytes = send (connection->connectionSocket,
+            sentence.c_str(), sentence.length(), 0);
+        send (connection->connectionSocket, "\3", 1, 0);
+        if (bytes == sentence.length()) return true;
+        return false;
+    }
 };

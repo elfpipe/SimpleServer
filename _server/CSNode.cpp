@@ -1,7 +1,7 @@
 #include "CSNode.hpp"
 
 bool CSNode::doBind (int port) {
-    if (hasBinding) return true;
+    //if (hasBinding) return true;
 
     // server address
     this->port = port;
@@ -40,7 +40,11 @@ void CSNode::unBind () {
     hasBinding = false;
 }
 
-CSNode::CSConnection *CSNode::waitForIncomming() {    
+CSNode::CSConnection *CSNode::waitForIncomming() {
+    if(!hasBinding) {
+        printf("No binding present on node\n");
+        return 0;
+    }
     CSConnection *connection = new CSConnection;
 
     struct sockaddr_in address = (struct sockaddr_in) {
