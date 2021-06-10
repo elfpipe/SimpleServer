@@ -8,52 +8,67 @@ CSNode::CSConnection *do_command(CSNode &node, string command, CSNode::CSConnect
     astream a(command);
     string stripped = a.get('\n');
     a.setString(stripped);
-    vector<string> argv = a.split();
+    vector<string> argv = a.split(' ');
     string keyword = argv[0];
+
+    cout << "argv[0]: '" << argv[0] << "'\n";
 
     if(!keyword.compare("SERVE")) {
         if(argv.size() < 2) {
             cout << "Usage : SERVE <port>\n";
         } else {
-            cout << "--- Waiting for incomming ---\n";
-            CSNode::CSConnection *newConnection = node.waitForIncomming();
+            cout << "(*) Serving calls on port " << argv[1] << "....\n";
 
-            if (newConnection) {
-                cout << "Successfully received incomming ---*\n";
-                if (connection) {
-                    cout << "Closing previous connection (closed).\n";
-                    node.closeConnection (connection);
-                }
+            CSNode::CSConnection *newConnection = node.waitForIncomming (atoi(argv[1].c_str()));
+            if(newConnection) {
+                cout << "Gracefully accepted call from " << newConnection->identityString << " :)\n";
                 connection = newConnection;
-            } else {
-                cout << "Failed to receive incomming |\n";
+                node.createServer (connection);
             }
         }
-        return connection;
-    } else if(!keyword.compare("CONNECT")) {
+    } else if(!keyword.compare("CALL")) {
         if(argv.size() < 3) {
-            cout << "Usage : CONNECT <address> <port>\n";
+            cout << "Usage : CALL <address> <port>\n";
         } else {
-            CSNode::CSConnection *newConnection = node.connectToPeer(argv1.c_str(), atoi(argv2.c_str()));
+            if (connection) {
+                cout << "Please close previous connection to " << connection->identityString << " first. (CALL)\n";
+                return connection;
+            }
+
+            CSNode::CSConnection *newConnection = node.connectToPeer(argv[1].c_str(), atoi(argv[2].c_str()));
 
             if (newConnection) {
-                cout << "Successfully connected to " << argv1 << "\n";
-                if (connection) {
-                    cout << "Closing previous connection (closed).\n";
-                    node.closeConnection (connection);
-                }
+                cout << "Successfully connected to " << argv[1] << "\n";
+                cout << "Sending credentials to " << argv[1] << "\n";
+                // -- bla bla --
+                cout << "Host accepted call.\n";
                 connection = newConnection;
-            } else {
-                cout << "Failed to connect to " <<  argv1 << ":" << argv2 << "\n";
-            }
+                node.createServer (connection);
+            } else cout << "Failed to connect to " << argv[1] << "\n";
         }
         return connection;
+    } else if (!keyword.compare("MESSAGE")) {
+        if(connection) {
+            node.writeSentence (connection, stripped);
+        } else cout << "No connection\n";
     } else if (!keyword.compare("CLOSE")) {
-        node.closeConnection(connection);
-        cout << "Connection closed\n";
-        connection = 0;
-    } else if (!keyword.compare("QUIT")) {
-        term = true;
+        if(connection) {
+            node.writeSentence(connection, "CLOSE");
+            node.closeConnection(connection);
+            cout << "Connection closed\n";
+            connection = 0;
+        } else cout << "Not connected.\n";
+    } else if (!keyword.compare("EXIT")) {
+        if (connection) {
+            node.writeSentence (connection, "CLOSE");
+            node.closeConnection (connection);
+        }
+        cout << "Connection closed. Exit.\n";
+        exit(0);
+    } else if (!keyword.compare("PUSH")) {
+
+    } else if (!keyword.compare("PULL")) {
+
     }
     return connection;
 }
@@ -68,10 +83,7 @@ int main(int argc, char *argv[]) {
         printf("> ");
         fgets(command, 1023, stdin);
     	connection = do_command(node, command, connection);
-    } while (!term);
+    } while(true);
 
-    if (connection) {
-        node.closeConnection (connection);
-    }
-    return 0;
+    //return 0;
 }
