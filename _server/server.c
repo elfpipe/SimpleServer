@@ -73,6 +73,42 @@ int do_PUSH (int sock, char *filename) // PUSH from client
     return 0;
 }
 
+int do_PULL (int sock, char *filename)
+{
+    int fd = open (filename,  O_RDONLY);
+    if (fd < 0) {
+        safe_send(sock, "0"); //send file size 0
+	    perror ("open");
+	    return -1;
+    }
+
+    //calculate file size
+    int size = lseek (fd, 0, SEEK_END);
+    lseek (fd, 0, SEEK_SET);
+    char sizebuf[128];
+
+    //send file size as string
+    sprintf(sizebuf, "%d", size);
+    safe_send(sock, sizebuf);
+
+    printf("<send file> : %s , size=%s\n", filename, sizebuf);
+
+    //send file data
+    int sent = 0;
+    while (sent < size) {
+        char buffer[4096];
+        int len = read (fd, buffer, sizeof(buffer));
+        if (len < 0) return -1;
+    	send (sock, buffer, len, 0);
+    	sent += len;
+    }
+
+    printf("<PUSH> : file sent\n");
+
+    close (fd);
+    return 0;
+}
+
 const char *commands[] = {
     "PUSH",
     "PULL",
@@ -105,6 +141,7 @@ int do_command (int sock, char *message)
 	    break;
 	case C_PULL:
 	    printf("<PULL> : %s\n", argument);
+        do_PULL (sock, argument);
 	    break;
 	case C_CLOSE:
 	    printf("<CLOSE>\n");
@@ -161,8 +198,8 @@ int main(int argc, char const *argv[])
 
         //send welcome message
 
-        const char *welcome = "Hello and welcome\n We are pleased to \3 tell you, that you are connected.\n\n";
-        send (connect, welcome, strlen (welcome), 0);
+        // const char *welcome = "Hello and welcome\n We are pleased to \3 tell you, that you are connected.\n\n";
+        // send (connect, welcome, strlen (welcome), 0);
 
 
 	while(!term) {
