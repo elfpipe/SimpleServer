@@ -77,12 +77,12 @@ int do_PULL (int sock, char *filename) // PUSH from client
     int size = atoi(sizestr);
 
     if (size == 0) {
-    	printf("<PUSH> : file size 0, abort\n");
+    	printf("<PULL> : file size 0, abort\n");
     	return -1;
     }
 
     printf("<read file> : %s , size %d\n", filename, size);
-
+return 0;
     //read file to disk
     int fd = open (filename, O_CREAT|O_WRONLY|O_TRUNC); //read, write and execute permission
     if (fd < 0) {
@@ -98,7 +98,7 @@ int do_PULL (int sock, char *filename) // PUSH from client
 	    rbytes += len;
     }
 
-    printf("<PUSH> : success\n");
+    printf("<PULL> : success\n");
 
     close (fd);
     if(rbytes != size)
@@ -149,7 +149,7 @@ int do_command (int sock, char *message)
 	    break;
     }
     //write out response from server
-    puts(safe_recv(sock));
+    // puts(safe_recv(sock));
     return 0;
 }
 
