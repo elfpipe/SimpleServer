@@ -92,11 +92,11 @@ int do_PULL (int sock, char *filename)
     safe_send(sock, sizebuf);
 
     printf("<send file> : %s , size=%s\n", filename, sizebuf);
-return 0;
+
     //send file data
     int sent = 0;
     while (sent < size) {
-        char buffer[4096];
+        char buffer[4096*46];
         int len = read (fd, buffer, sizeof(buffer));
         if (len < 0) return -1;
     	send (sock, buffer, len, 0);
