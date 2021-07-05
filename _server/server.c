@@ -7,7 +7,7 @@
 #include <string.h>
 #include <sys/file.h>
 
-#define PORT 8021
+#define PORT 8022
 
 int term = 0;
 
@@ -94,14 +94,19 @@ int do_PULL (int sock, char *filename)
     printf("<send file> : %s , size=%s\n", filename, sizebuf);
 
     //send file data
-    int sent = 0;
-    while (sent < size) {
-        char buffer[4096*46];
-        int len = read (fd, buffer, sizeof(buffer));
-        if (len < 0) return -1;
-    	send (sock, buffer, len, 0);
-    	sent += len;
-    }
+    // int sent = 0;
+    // while (sent < size) {
+    //     char buffer[4096*46];
+    //     int len = read (fd, buffer, sizeof(buffer));
+    //     if (len < 0) return -1;
+    // 	send (sock, buffer, len, 0);
+    // 	sent += len;
+    // }
+
+    char *buffer = (char *)malloc (size+1);
+    int len = read (fd, buffer, size+1);
+    if (len < 0) return -1;
+    send (sock, buffer, size, 0);
 
     printf("<PULL> : file sent\n");
 
