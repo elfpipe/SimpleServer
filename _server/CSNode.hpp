@@ -41,7 +41,7 @@ public:
     CSConnection *connectToPeer (const char *address, int port);
     void closeConnection (CSConnection *connection);
 
-    string readSentence (CSConnection *connection, char stopCharacter);
+    string readSentence (CSConnection *connection, char stopCharacter = '\3');
     bool writeSentence (CSConnection *connection, string sentence);
 
     void createServer (CSConnection *connection);

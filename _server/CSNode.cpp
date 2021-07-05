@@ -7,8 +7,8 @@ bool CSNode::doBind (int port) {
     this->port = port;
     struct sockaddr_in address = (struct sockaddr_in) {
         AF_INET,
-        htons(port),
-        (struct in_addr){INADDR_ANY}
+        htons((sa_family_t)port),
+        (in_port_t){INADDR_ANY}
     };
     int addrlen = sizeof(address);
 
@@ -56,8 +56,8 @@ CSNode::CSConnection *CSNode::waitForIncomming(int port) {
 
     struct sockaddr_in address = (struct sockaddr_in) {
         AF_INET,
-        htons(port),
-        (struct in_addr){INADDR_ANY}
+        htons((sa_family_t)port),
+        (in_port_t){INADDR_ANY}
     };
     int addrlen = sizeof(address);
     
@@ -117,7 +117,7 @@ void CSNode::closeConnection (CSNode::CSConnection *connection) {
     }
 }
 
-string CSNode::readSentence (CSConnection *connection, char stopCharacter = '\3') { //ETX
+string CSNode::readSentence (CSConnection *connection, char stopCharacter) { //ETX
     string result;
     const int Bufsize = 1024;
     int bytes; char buffer[1024];
@@ -137,7 +137,7 @@ string CSNode::readSentence (CSConnection *connection, char stopCharacter = '\3'
 bool CSNode::writeSentence (CSConnection *connection, string sentence) {
     Buffer writeBuffer;
     writeBuffer.fill ((char *)sentence.c_str(), sentence.length());
-    writeBuffer.fill ("\3\0", 2);
+    writeBuffer.fill ((char *)"\3\0", 2);
     string out = writeBuffer.read('\0');
     int bytes = send (connection->connectionSocket, out.c_str(), out.length(), 0);
     if (bytes == sentence.length()) return true;
@@ -145,45 +145,27 @@ bool CSNode::writeSentence (CSConnection *connection, string sentence) {
 }
 
 void CSNode::createServer (CSConnection *connection) {
-    int pid = fork();
+    string message = readSentence(connection);
+    astream a(message);
+    vector<string> argv = a.split(' ');
+    string keyword = argv[0];
 
-    if(pid == -1) {
-        perror("fork");
-        return;
-    } else if (pid == 0) {
-        while (1) {
-            string message;
-            try {
-                message = readSentence (connection);
-            } catch (exception dummy) {
-                perror ("recv");
-                exit(0);
-            }
-
-            astream a(message);
-            vector<string> argv = a.split(' ');
-            string keyword = argv[0];
-
-            if (!keyword.compare("MESSAGE")) {
-                string output = "<message> : ";
-                for (int i = 1; i < argv.size(); i++) {
-                    output += argv[i];
-                    if (i < argv.size() - 1) output += " ";
-                }
-                cout << output << "\n";
-            } else if (!keyword.compare("CLOSE")) {
-                // if remote node is a server, help to close
-                writeSentence(connection, "CLOSE");
-                closeConnection (connection);
-                exit(0); // abandon...
-            } else if (!keyword.compare("PUSH")) {
-
-            } else if (!keyword.compare("PULL")) {
-
-            }
-            printf("> "); //reinsert the prompt
+    if (!keyword.compare("MESSAGE")) {
+        string output = "<message> : ";
+        for (int i = 1; i < argv.size(); i++) {
+            output += argv[i];
+            if (i < argv.size() - 1) output += " ";
         }
-    } else {
-        return;
+        cout << output << "\n";
+    } else if (!keyword.compare("CLOSE")) {
+        // if remote node is a server, help to close
+        writeSentence(connection, "CLOSE");
+        closeConnection (connection);
+        exit(0); // abandon...
+    } else if (!keyword.compare("PUSH")) {
+
+    } else if (!keyword.compare("PULL")) {
+
     }
+    printf("> "); //reinsert the prompt
 }

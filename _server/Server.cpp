@@ -37,10 +37,12 @@ public:
 
                 CSNode::CSConnection *connection = _this->node->waitForIncomming (_this->node->port);
                 if (connection) {
-                    cout << "<message> : " << _this->node->readSentence (connection, '\3') << "\n";
-                    _this->node->writeSentence (connection, "CLOSE");
+                    // cout << "<message> : " << _this->node->readSentence (connection, '\3') << "\n";
+                    // _this->node->writeSentence (connection, "CLOSE");
+                    _this->node->createServer (connection);
                     _this->node->closeConnection (connection);
                     cout << "Call completed.\n";
+
                 }
             }
             if(pfds[1].revents & POLLIN) {

@@ -122,10 +122,10 @@ int main(int argc, char const *argv[])
 {
     int sock, connect;
 
-    /* Server addess */
+    /* Server address */
     struct sockaddr_in address = (struct sockaddr_in){  
         AF_INET,
-        htons(PORT),
+        htons((sa_family_t)PORT),
         (struct in_addr){INADDR_ANY}
     };
     int addrlen = sizeof(address);

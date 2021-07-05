@@ -1,7 +1,7 @@
 #ifndef BUFFER_HPP
 #define BUFFER_HPP
 #include <string>
-#include <memory.h>
+// #include <memory.h>
 using namespace std;
 class Buffer {
 private:
