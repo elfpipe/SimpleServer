@@ -105,8 +105,11 @@ int do_PULL (int sock, char *filename)
 
     char *buffer = (char *)malloc (size+1);
     int len = read (fd, buffer, size+1);
+    printf("len: %d\n", len);
     if (len < 0) return -1;
-    send (sock, buffer, size, 0);
+    len = send (sock, buffer, size, 0);
+    printf("len: %d\n", len);
+    
 
     printf("<PULL> : file sent\n");
 
