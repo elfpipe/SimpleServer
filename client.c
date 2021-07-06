@@ -102,7 +102,9 @@ int do_PULL (int sock, char *filename) // PUSH from client
     // }
 
     char *buffer = (char *) malloc(size);
+    printf("recv: ");
     int len = recv (sock, buffer, 16 /*sizeof(buffer)*/, 0);
+    printf("len = %d\n", len);
     if (len < 0) {
         printf("Negative amount of bytes received.\n");
         return 0;
