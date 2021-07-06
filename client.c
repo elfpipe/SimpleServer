@@ -101,7 +101,7 @@ int do_PULL (int sock, char *filename) // PUSH from client
     char *buffer = (char *)malloc (size+1);
     printf("Calling recv...\n");
     int len = recv (sock, buffer, size, 0);
-    printf("Return.\n");
+    printf("Received %d bytes.\n", len);
     write(fd, buffer, len);
 
     printf("<PULL> : success\n");
