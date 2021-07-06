@@ -103,8 +103,8 @@ int do_PULL (int sock, char *filename) // PUSH from client
 	//     rbytes += len;
     // }
 
-    char buffer[size];
     printf("recv: ");
+    char buffer[size];
     int len = recv (sock, buffer, 16 /*sizeof(buffer)*/, 0);
     printf("len = %d\n", len);
     if (len < 0) {
