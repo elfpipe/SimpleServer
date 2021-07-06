@@ -7,7 +7,7 @@
 #include <string.h>
 #include <sys/file.h>
 
-#define PORT 8022
+#define PORT 8024
 
 int term = 0;
 
@@ -93,7 +93,7 @@ int do_PULL (int sock, char *filename)
 
     printf("<send file> : %s , size=%s\n", filename, sizebuf);
 
-return 0;
+sleep(1);
     //send file data
     int sent = 0;
     while (sent < size) {
