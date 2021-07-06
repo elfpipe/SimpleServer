@@ -83,12 +83,14 @@ int do_PULL (int sock, char *filename) // PUSH from client
 
     printf("<read file> : %s , size %d\n", filename, size);
 
+    printf("open ");
     //read file to disk
     int fd = open (filename, O_CREAT|O_WRONLY|O_TRUNC); //read, write and execute permission
     if (fd < 0) {
 	    perror("open");
 	    return -1;
     }
+    printf("File opened\n");
     // close(fd);
     // return 0;
 
