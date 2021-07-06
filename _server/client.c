@@ -70,6 +70,49 @@ int do_PUSH (int sock, char *filename)
     return 0;
 }
 
+int do_PULL (int sock, char *filename) // PUSH from client
+{
+    //read size from connect
+    char *sizestr = safe_recv(sock);
+    int size = atoi(sizestr);
+
+    if (size == 0) {
+    	printf("<PULL> : file size 0, abort\n");
+    	return -1;
+    }
+
+    printf("<read file> : %s , size %d\n", filename, size);
+
+    //read file to disk
+    int fd = open (filename, O_CREAT|O_WRONLY|O_TRUNC); //read, write and execute permission
+    if (fd < 0) {
+	    perror("open");
+	    return -1;
+    }
+    // int rbytes = 0;
+    // while (rbytes < size) {
+    //     char buffer[4096*46];
+	//     int len = recv (sock, buffer, sizeof(buffer), 0);
+	//     if (len < 0) return -1;
+	//     write (fd, buffer, len);
+	//     rbytes += len;
+    // }
+
+    char *buffer = (char *)malloc (size+1);
+    printf("Calling recv...\n");
+    int len = recv (sock, buffer, size, 0);
+    printf("Received %d bytes.\n", len);
+    write(fd, buffer, len);
+
+    printf("<PULL> : success\n");
+
+    close (fd);
+    if(len != size)
+    	printf("Warning : PUSH returned file of Odd size\n");
+
+    return 0;
+}
+
 char *commands[] = {
     "PUSH",
     "PULL",
@@ -102,6 +145,7 @@ int do_command (int sock, char *message)
 	    break;
 	case C_PULL:
 	    printf("<PULL> : %s\n", argument);
+        do_PULL (sock, argument);
 	    break;
 	case C_CLOSE:
 	    printf("<CLOSE>\n");
@@ -111,7 +155,7 @@ int do_command (int sock, char *message)
 	    break;
     }
     //write out response from server
-    puts(safe_recv(sock));
+    // puts(safe_recv(sock));
     return 0;
 }
 

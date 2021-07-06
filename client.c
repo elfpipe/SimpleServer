@@ -77,7 +77,7 @@ int do_PULL (int sock, char *filename) // PUSH from client
     int size = atoi(sizestr);
 
     if (size == 0) {
-    	printf("<PULL> : file size 0, abort\n");
+    	printf("<PUSH> : file size 0, abort\n");
     	return -1;
     }
 
@@ -89,25 +89,19 @@ int do_PULL (int sock, char *filename) // PUSH from client
 	    perror("open");
 	    return -1;
     }
-    // int rbytes = 0;
-    // while (rbytes < size) {
-    //     char buffer[4096*46];
-	//     int len = recv (sock, buffer, sizeof(buffer), 0);
-	//     if (len < 0) return -1;
-	//     write (fd, buffer, len);
-	//     rbytes += len;
-    // }
+    int rbytes = 0;
+    while (rbytes < size) {
+        char buffer[4096];
+	    int len = recv (sock, buffer, sizeof(buffer), 0);
+	    if (len < 0) return -1;
+	    write (fd, buffer, len);
+	    rbytes += len;
+    }
 
-    char *buffer = (char *)malloc (size+1);
-    printf("Calling recv...\n");
-    int len = recv (sock, buffer, size, 0);
-    printf("Received %d bytes.\n", len);
-    write(fd, buffer, len);
-
-    printf("<PULL> : success\n");
+    printf("<PUSH> : success\n");
 
     close (fd);
-    if(len != size)
+    if(rbytes != size)
     	printf("Warning : PUSH returned file of Odd size\n");
 
     return 0;

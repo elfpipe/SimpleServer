@@ -94,24 +94,16 @@ int do_PULL (int sock, char *filename)
     printf("<send file> : %s , size=%s\n", filename, sizebuf);
 
     //send file data
-    // int sent = 0;
-    // while (sent < size) {
-    //     char buffer[4096*46];
-    //     int len = read (fd, buffer, sizeof(buffer));
-    //     if (len < 0) return -1;
-    // 	send (sock, buffer, len, 0);
-    // 	sent += len;
-    // }
+    int sent = 0;
+    while (sent < size) {
+        char buffer[4096];
+        int len = read (fd, buffer, sizeof(buffer));
+        if (len < 0) return -1;
+    	send (sock, buffer, len, 0);
+    	sent += len;
+    }
 
-    char *buffer = (char *)malloc (size+1);
-    int len = read (fd, buffer, size+1);
-    printf("len: %d\n", len);
-    if (len < 0) return -1;
-    len = send (sock, buffer, size, 0);
-    printf("len: %d\n", len);
-    
-
-    printf("<PULL> : file sent\n");
+    printf("<PUSH> : file sent\n");
 
     close (fd);
     return 0;
