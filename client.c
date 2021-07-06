@@ -96,23 +96,23 @@ int do_PULL (int sock, char *filename) // PUSH from client
     // close(fd);
     // return 0;
 
-    // int rbytes = 0;
-    // while (rbytes < size) {
-    //     char buffer[4096];
-	//     int len = recv (sock, buffer, sizeof(buffer), 0);
-	//     if (len < 0) return -1;
-	//     write (fd, buffer, len);
-	//     rbytes += len;
-    // }
-
-    char buffer[size];
-    int len = recv (sock, buffer, sizeof(buffer), 0);
-    printf("len = %d\n", len);
-    if (len < 0) {
-        printf("Negative amount of bytes received.\n");
-        return 0;
+    int rbytes = 0;
+    while (rbytes < size) {
+        char buffer[4096];
+	    int len = recv (sock, buffer, sizeof(buffer), 0);
+	    if (len < 0) return -1;
+	    write (fd, buffer, len);
+	    rbytes += len;
     }
-    write (fd, buffer, len);
+
+    // char buffer[size];
+    // int len = recv (sock, buffer, sizeof(buffer), 0);
+    // printf("len = %d\n", len);
+    // if (len < 0) {
+    //     printf("Negative amount of bytes received.\n");
+    //     return 0;
+    // }
+    // write (fd, buffer, len);
 
     printf("<PUSH> : success\n");
 
