@@ -90,8 +90,9 @@ int do_PULL (int sock, char *filename) // PUSH from client
 	    perror("open");
 	    return -1;
     }
+    printf("Hej\n");
     printf("File opened\n");
-    printf("recv: ");
+    printf("recv: \n");
     // close(fd);
     // return 0;
 
