@@ -83,30 +83,37 @@ int do_PULL (int sock, char *filename) // PUSH from client
 
     printf("<read file> : %s , size %d\n", filename, size);
 
-return 0;
-
-
-
     //read file to disk
     int fd = open (filename, O_CREAT|O_WRONLY|O_TRUNC); //read, write and execute permission
     if (fd < 0) {
 	    perror("open");
 	    return -1;
     }
-    int rbytes = 0;
-    while (rbytes < size) {
-        char buffer[4096];
-	    int len = recv (sock, buffer, sizeof(buffer), 0);
-	    if (len < 0) return -1;
-	    write (fd, buffer, len);
-	    rbytes += len;
+    close(fd);
+    return 0;
+
+    // int rbytes = 0;
+    // while (rbytes < size) {
+    //     char buffer[4096];
+	//     int len = recv (sock, buffer, sizeof(buffer), 0);
+	//     if (len < 0) return -1;
+	//     write (fd, buffer, len);
+	//     rbytes += len;
+    // }
+
+    char *buffer = (char *) malloc(size);
+    int len = recv (sock, buffer, sizeof(buffer), 0);
+    if (len < 0) {
+        printf("Negative amount of bytes received.\n");
+        return 0;
     }
+    write (fd, buffer, len);
 
     printf("<PUSH> : success\n");
 
     close (fd);
-    if(rbytes != size)
-    	printf("Warning : PUSH returned file of Odd size\n");
+    // if(rbytes != size)
+    // 	printf("Warning : PUSH returned file of Odd size\n");
 
     return 0;
 }
