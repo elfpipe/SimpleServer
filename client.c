@@ -89,8 +89,8 @@ int do_PULL (int sock, char *filename) // PUSH from client
 	    perror("open");
 	    return -1;
     }
-    close(fd);
-    return 0;
+    // close(fd);
+    // return 0;
 
     // int rbytes = 0;
     // while (rbytes < size) {
