@@ -93,6 +93,7 @@ int do_PULL (int sock, char *filename)
 
     printf("<send file> : %s , size=%s\n", filename, sizebuf);
 
+return 0;
     //send file data
     int sent = 0;
     while (sent < size) {
